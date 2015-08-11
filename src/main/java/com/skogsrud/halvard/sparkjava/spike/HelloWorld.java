@@ -7,7 +7,7 @@ import spark.Route;
 import static spark.Spark.*;
 
 public class HelloWorld {
-    public static void main(String[] args) {
+    public void run() throws Exception {
         get("/hello", (request, response) -> "Hello World");
 
         get("/hello7", new Route() {
@@ -16,5 +16,12 @@ public class HelloWorld {
                 return "Hello World without lambda";
             }
         });
+    }
+
+    /**
+     * Use this main() method to run a server with only the routes defined in this class
+     */
+    public static void main(String[] args) throws Exception {
+        new HelloWorld().run();
     }
 }

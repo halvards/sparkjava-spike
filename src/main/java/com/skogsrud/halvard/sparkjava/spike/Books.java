@@ -1,64 +1,64 @@
 package com.skogsrud.halvard.sparkjava.spike;
 
-import static spark.Spark.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
+import java.util.UUID;
+
+import static spark.Spark.*;
 
 /**
- * Sample adapted from https://github.com/perwendel/spark
+ * Adapted from https://github.com/perwendel/spark
  */
 public class Books {
-
     private static Map<String, Book> books = new HashMap<>();
+    private final ObjectMapper objectMapper;
 
-    public static void main(String[] args) {
-        final Random random = new Random();
+    public Books(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
+    public void run() throws Exception {
         // Creates a new book resource, will return the ID to the created resource
-        // author and title are sent as query parameters e.g. /books?author=Foo&title=Bar
-        post("/books", (request, response) -> {
+        // author and title are sent as query parameters, e.g., author=Foo&title=Bar
+        post("/books", "application/x-www-form-urlencoded", (request, response) -> {
             String author = request.queryParams("author");
             String title = request.queryParams("title");
+            if (author == null || title == null) {
+                response.status(400);
+                return "Both author and title must be provided, e.g., author=Foo&title=Bar";
+            }
             Book book = new Book(author, title);
-
-            int id = random.nextInt(Integer.MAX_VALUE);
-            books.put(String.valueOf(id), book);
-
-            response.status(201); // 201 Created
+            String id = UUID.randomUUID().toString();
+            books.put(id, book);
+            response.status(201);
             return id;
         });
 
         // Gets the book resource for the provided id
         get("/books/:id", (request, response) -> {
-            Book book = books.get(request.params(":id"));
-            if (book != null) {
-                return "Title: " + book.getTitle() + ", Author: " + book.getAuthor();
-            } else {
-                response.status(404); // 404 Not found
-                return "Book not found";
+            String id = request.params(":id");
+            Book book = books.get(id);
+            if (book == null) {
+                response.status(404);
+                return "Book with id [" + id + "] not found";
             }
-        });
+            response.type("application/json");
+            return book;
+        }, objectMapper::writeValueAsString);
 
         // Updates the book resource for the provided id with new information
         // author and title are sent as query parameters e.g. /books/<id>?author=Foo&title=Bar
         put("/books/:id", (request, response) -> {
             String id = request.params(":id");
-            Book book = books.get(id);
-            if (book != null) {
-                String newAuthor = request.queryParams("author");
-                String newTitle = request.queryParams("title");
-                if (newAuthor != null) {
-                    book.setAuthor(newAuthor);
-                }
-                if (newTitle != null) {
-                    book.setTitle(newTitle);
-                }
-                return "Book with id '" + id + "' updated";
+            Book book = new Book(request.queryParams("author"), request.queryParams("title"));
+            if (books.get(id) != null) {
+                books.put(id, book);
+                return book;
             } else {
-                response.status(404); // 404 Not found
-                return "Book not found";
+                response.status(404);
+                return "Book with id [" + id + "] not found";
             }
         });
 
@@ -66,47 +66,24 @@ public class Books {
         delete("/books/:id", (request, response) -> {
             String id = request.params(":id");
             Book book = books.remove(id);
-            if (book != null) {
-                return "Book with id '" + id + "' deleted";
-            } else {
-                response.status(404); // 404 Not found
-                return "Book not found";
+            if (book == null) {
+                response.status(404);
+                return "Book with id [" + id + "] not found";
             }
+            return "Book with id [" + id + "] deleted";
         });
 
-        // Gets all available book resources (id's)
+        // Gets all books
         get("/books", (request, response) -> {
-            String ids = "";
-            for (String id : books.keySet()) {
-                ids += id + " ";
-            }
-            return ids;
-        });
+            response.type("application/json");
+            return books;
+        }, objectMapper::writeValueAsString);
     }
 
-    public static class Book {
-
-        public String author, title;
-
-        public Book(String author, String title) {
-            this.author = author;
-            this.title = title;
-        }
-
-        public String getAuthor() {
-            return author;
-        }
-
-        public void setAuthor(String author) {
-            this.author = author;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
+    /**
+     * Use this main() method to run a server with only the routes defined in this class
+     */
+    public static void main(String[] args) throws Exception {
+        new Books(new ObjectMapper()).run();
     }
 }
