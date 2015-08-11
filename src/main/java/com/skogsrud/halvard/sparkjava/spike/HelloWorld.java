@@ -22,6 +22,7 @@ public class HelloWorld {
      * Use this main() method to run a server with only the routes defined in this class
      */
     public static void main(String[] args) throws Exception {
+        port(PortResolver.getPort(args));
         new HelloWorld().run();
     }
 }

@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 import static spark.Spark.get;
+import static spark.SparkBase.port;
 
 public class Image {
     public void run() throws Exception {
@@ -33,6 +34,7 @@ public class Image {
      * Use this main() method to run a server with only the routes defined in this class
      */
     public static void main(String[] args) throws Exception {
+        port(PortResolver.getPort(args));
         new Image().run();
     }
 }

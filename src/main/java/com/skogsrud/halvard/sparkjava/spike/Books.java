@@ -94,6 +94,7 @@ public class Books {
      * Use this main() method to run a server with only the routes defined in this class
      */
     public static void main(String[] args) throws Exception {
+        port(PortResolver.getPort(args));
         new Books(new ObjectMapper()).run();
     }
 }
