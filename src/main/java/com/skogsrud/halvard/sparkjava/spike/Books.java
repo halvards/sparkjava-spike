@@ -21,15 +21,9 @@ public class Books {
 
     public void run() throws Exception {
         // Creates a new book resource, will return the ID to the created resource
-        // author and title are sent as query parameters, e.g., author=Foo&title=Bar
-        post("/books", "application/x-www-form-urlencoded", (request, response) -> {
-            String author = request.queryParams("author");
-            String title = request.queryParams("title");
-            if (author == null || title == null) {
-                response.status(400);
-                return "Both author and title must be provided, e.g., author=Foo&title=Bar";
-            }
-            Book book = new Book(author, title);
+        // author and title are sent as JSON, e.g., { "author": "Foo", "title": "Bar" }
+        post("/books", "application/json", (request, response) -> {
+            Book book = objectMapper.readValue(request.body(), Book.class);
             String id = UUID.randomUUID().toString();
             books.put(id, book);
             response.status(201);
