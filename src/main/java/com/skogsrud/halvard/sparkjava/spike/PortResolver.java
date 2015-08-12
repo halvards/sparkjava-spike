@@ -4,6 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.SparkBase;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 public class PortResolver {
     private static final Logger LOG = LoggerFactory.getLogger(PortResolver.class);
 
@@ -26,5 +29,11 @@ public class PortResolver {
             LOG.warn("Using default port " + port, e);
         }
         return port;
+    }
+
+    public static int findOpenPort() throws IOException {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        }
     }
 }

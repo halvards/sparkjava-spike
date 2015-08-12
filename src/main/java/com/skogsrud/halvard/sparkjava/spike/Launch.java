@@ -18,6 +18,7 @@ public class Launch {
         new HelloWorld().run();
         new Books(objectMapper).run();
         new Image().run();
+        new Articles(objectMapper).run();
 
         disableCaching();
     }
