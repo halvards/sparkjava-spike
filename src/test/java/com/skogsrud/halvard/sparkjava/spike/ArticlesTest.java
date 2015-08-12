@@ -41,7 +41,9 @@ public class ArticlesTest {
                     .build();
             request.setEntity(requestEntity);
             try (CloseableHttpResponse response = httpClient.execute(request)) {
-                assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
+                assertThat(response.getStatusLine().getStatusCode(), equalTo(201));
+                System.out.println(response.getFirstHeader("location"));
+                System.out.println(IOUtils.toString(response.getEntity().getContent()));
             }
         }
     }
