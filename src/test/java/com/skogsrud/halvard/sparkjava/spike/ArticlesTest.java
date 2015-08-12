@@ -30,14 +30,15 @@ public class ArticlesTest {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPost createArticleRequest = new HttpPost("http://localhost:" + port + "/articles");
             String articleAsString = objectMapper.writeValueAsString(new Article("article title", "article body"));
-            String fileName = "image.jpg";
-            byte[] imageBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/" + fileName));
+            String imagePartName = "image";
+            String imageFileName = "image.jpg";
+            byte[] imageBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/" + imageFileName));
             HttpEntity requestEntity = MultipartEntityBuilder.create()
                     .addTextBody("article", articleAsString, ContentType.APPLICATION_JSON)
                     .addPart(FormBodyPartBuilder.create()
-                            .setName("image")
-                            .setBody(new ByteArrayBody(imageBytes, ContentType.create("image/jpeg"), fileName))
-                            .setField("Content-Disposition", "form-data; name=\"image\"; filename=\"" + fileName + "\"; size=" + imageBytes.length)
+                            .setName(imagePartName)
+                            .setBody(new ByteArrayBody(imageBytes, ContentType.create("image/jpeg"), imageFileName))
+                            .setField("Content-Disposition", String.format("form-data; name=\"%s\"; filename=\"%s\"; size=%d", imagePartName, imageFileName, imageBytes.length))
                             .build())
                     .build();
             createArticleRequest.setEntity(requestEntity);
@@ -50,7 +51,7 @@ public class ArticlesTest {
                     assertThat(getArticleResponse.getStatusLine().getStatusCode(), equalTo(200));
                     assertThat(getArticleResponse.getFirstHeader("content-type").getValue(), equalTo("application/json"));
                 }
-                String imageUrl = "http://localhost:" + port + "/articles/images/" + fileName;
+                String imageUrl = "http://localhost:" + port + "/articles/images/" + imageFileName;
 //                System.out.println("Retrieving image from:   " + imageUrl);
                 HttpGet getImageRequest = new HttpGet(imageUrl);
                 try (CloseableHttpResponse getImageResponse = httpClient.execute(getImageRequest)) {
