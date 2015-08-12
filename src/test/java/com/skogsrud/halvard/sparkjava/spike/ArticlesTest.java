@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.FormBodyPartBuilder;
@@ -27,7 +28,7 @@ public class ArticlesTest {
     @Test
     public void testMultipart() throws Exception {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpPost request = new HttpPost("http://localhost:" + port + "/articles");
+            HttpPost createArticleRequest = new HttpPost("http://localhost:" + port + "/articles");
             String articleAsString = objectMapper.writeValueAsString(new Article("article title", "article body"));
             String fileName = "image.jpg";
             byte[] imageBytes = IOUtils.toByteArray(getClass().getResourceAsStream("/" + fileName));
@@ -39,11 +40,24 @@ public class ArticlesTest {
                             .setField("Content-Disposition", "form-data; name=\"image\"; filename=\"" + fileName + "\"; size=" + imageBytes.length)
                             .build())
                     .build();
-            request.setEntity(requestEntity);
-            try (CloseableHttpResponse response = httpClient.execute(request)) {
-                assertThat(response.getStatusLine().getStatusCode(), equalTo(201));
-                String location = response.getFirstHeader("location").getValue();
-                System.out.println(location);
+            createArticleRequest.setEntity(requestEntity);
+            try (CloseableHttpResponse createArticleResponse = httpClient.execute(createArticleRequest)) {
+                assertThat(createArticleResponse.getStatusLine().getStatusCode(), equalTo(201));
+                String location = createArticleResponse.getFirstHeader("location").getValue();
+//                System.out.println("Retrieving article from: " + location);
+                HttpGet getArticleRequest = new HttpGet(location);
+                try (CloseableHttpResponse getArticleResponse = httpClient.execute(getArticleRequest)) {
+                    assertThat(getArticleResponse.getStatusLine().getStatusCode(), equalTo(200));
+                    assertThat(getArticleResponse.getFirstHeader("content-type").getValue(), equalTo("application/json"));
+                }
+                String imageUrl = "http://localhost:" + port + "/articles/images/" + fileName;
+//                System.out.println("Retrieving image from:   " + imageUrl);
+                HttpGet getImageRequest = new HttpGet(imageUrl);
+                try (CloseableHttpResponse getImageResponse = httpClient.execute(getImageRequest)) {
+                    assertThat(getImageResponse.getStatusLine().getStatusCode(), equalTo(200));
+                    assertThat(getImageResponse.getFirstHeader("content-type").getValue(), equalTo("image/jpeg"));
+                    assertThat(IOUtils.toByteArray(getImageResponse.getEntity().getContent()), equalTo(imageBytes));
+                }
             }
         }
     }

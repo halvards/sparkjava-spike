@@ -3,6 +3,7 @@ package com.skogsrud.halvard.sparkjava.spike;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.util.MultiPartInputStreamParser;
 
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
@@ -75,12 +76,6 @@ public class Articles {
             return "Article with id [" + id + "] deleted";
         });
 
-        get("/articles/images", (request, response) -> {
-            response.status(200);
-            response.type("application/json");
-            return images.keySet();
-        }, objectMapper::writeValueAsString);
-
         get("/articles/images/:filename", (request, response) -> {
             String filename = request.params(":filename");
             byte[] image = images.get(filename);
@@ -95,6 +90,12 @@ public class Articles {
             }
             return response.raw();
         });
+
+        get("/articles/images", (request, response) -> {
+            response.status(200);
+            response.type("application/json");
+            return images.keySet();
+        }, objectMapper::writeValueAsString);
     }
 
     private Article processArticleAndImage(spark.Request request, String id) throws IOException, ServletException {
@@ -102,9 +103,10 @@ public class Articles {
         Part articlePart = request.raw().getPart("article");
         Article article = objectMapper.readValue(articlePart.getInputStream(), Article.class);
         articles.put(id, article);
-        Part imagePart = request.raw().getPart("image");
+        MultiPartInputStreamParser.MultiPart imagePart = (MultiPartInputStreamParser.MultiPart) request.raw().getPart("image");
+        String filename = imagePart.getContentDispositionFilename();
         byte[] image = IOUtils.toByteArray(imagePart.getInputStream());
-        images.put(imagePart.getHeader("filename"), image);
+        images.put(filename, image);
         return article;
     }
 
