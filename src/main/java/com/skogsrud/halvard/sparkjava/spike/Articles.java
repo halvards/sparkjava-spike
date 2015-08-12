@@ -6,6 +6,7 @@ import org.eclipse.jetty.server.Request;
 
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.util.HashMap;
@@ -72,6 +73,27 @@ public class Articles {
                 return "Article with id [" + id + "] not found";
             }
             return "Article with id [" + id + "] deleted";
+        });
+
+        get("/articles/images", (request, response) -> {
+            response.status(200);
+            response.type("application/json");
+            return images.keySet();
+        }, objectMapper::writeValueAsString);
+
+        get("/articles/images/:filename", (request, response) -> {
+            String filename = request.params(":filename");
+            byte[] image = images.get(filename);
+            if (image == null) {
+                response.status(404);
+                return "Image with filename [" + filename + "] not found";
+            }
+            response.status(200);
+            response.type("image/jpeg");
+            try (ServletOutputStream out = response.raw().getOutputStream()) {
+                IOUtils.write(image, out);
+            }
+            return response.raw();
         });
     }
 
