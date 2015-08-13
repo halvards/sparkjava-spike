@@ -11,7 +11,7 @@ import java.util.UUID;
 import static spark.Spark.*;
 
 public class Books {
-    private static Map<String, Book> books = new HashMap<>();
+    private final Map<String, Book> books = new HashMap<>();
     private final ObjectMapper objectMapper;
 
     public Books(ObjectMapper objectMapper) {
@@ -48,13 +48,12 @@ public class Books {
         put("/books/:id", (request, response) -> {
             String id = request.params(":id");
             Book book = readBookFromRequestBody(request);
-            if (books.get(id) != null) {
-                books.put(id, book);
-                return book;
-            } else {
+            if (books.get(id) == null) {
                 response.status(404);
                 return "Book with id [" + id + "] not found";
             }
+            books.put(id, book);
+            return book;
         });
 
         // Deletes the book resource for the provided id
