@@ -1,14 +1,10 @@
 package com.skogsrud.halvard.sparkjava.spike;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class Article {
     private final String title;
     private final String body;
 
-    @JsonCreator
-    public Article(@JsonProperty("title") String title, @JsonProperty("body") String body) {
+    public Article(String title, String body) {
         this.title = title;
         this.body = body;
     }

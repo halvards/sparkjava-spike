@@ -1,6 +1,8 @@
 package com.skogsrud.halvard.sparkjava.spike;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.util.MultiPartInputStreamParser;
@@ -45,7 +47,6 @@ public class Articles {
 
             }
             Article article = processArticleAndImage(request, id);
-            response.status(200);
             response.type("application/json");
             return new HashMap<String, Article>() {{
                 put(id, article);
@@ -59,7 +60,6 @@ public class Articles {
                 response.status(404);
                 return "Article with id [" + id + "] not found";
             }
-            response.status(200);
             response.type("application/json");
             return article;
         }, objectMapper::writeValueAsString);
@@ -89,7 +89,6 @@ public class Articles {
                 response.status(404);
                 return "Image with filename [" + filename + "] not found";
             }
-            response.status(200);
             response.type("image/jpeg");
             try (ServletOutputStream out = response.raw().getOutputStream()) {
                 IOUtils.write(image, out);
@@ -104,7 +103,6 @@ public class Articles {
                 response.status(404);
                 return "Article with id [" + id + "] not found";
             }
-            response.status(200);
             response.type("application/json");
             return imageMap.keySet();
         }, objectMapper::writeValueAsString);
@@ -113,7 +111,11 @@ public class Articles {
     private Article processArticleAndImage(spark.Request request, String id) throws IOException, ServletException {
         request.raw().setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, new MultipartConfigElement(System.getProperty("java.io.tmpdir")));
         Part articlePart = request.raw().getPart("article");
-        Article article = objectMapper.readValue(articlePart.getInputStream(), Article.class);
+//        Article article = objectMapper.readValue(articlePart.getInputStream(), Article.class);
+        Object articlePartJson = Configuration.defaultConfiguration().jsonProvider().parse(articlePart.getInputStream(), "UTF-8");
+        String title = JsonPath.read(articlePartJson, "$.title");
+        String body = JsonPath.read(articlePartJson, "$.body");
+        Article article = new Article(title, body);
         articles.put(id, article);
         MultiPartInputStreamParser.MultiPart imagePart = (MultiPartInputStreamParser.MultiPart) request.raw().getPart("image");
         String filename = imagePart.getContentDispositionFilename();
