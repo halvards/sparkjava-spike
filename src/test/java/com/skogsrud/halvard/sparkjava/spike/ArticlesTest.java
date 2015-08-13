@@ -51,7 +51,7 @@ public class ArticlesTest {
                     assertThat(getArticleResponse.getStatusLine().getStatusCode(), equalTo(200));
                     assertThat(getArticleResponse.getFirstHeader("content-type").getValue(), equalTo("application/json"));
                 }
-                String imageUrl = "http://localhost:" + port + "/articles/images/" + imageFileName;
+                String imageUrl = location + "/images/" + imageFileName;
 //                System.out.println("Retrieving image from:   " + imageUrl);
                 HttpGet getImageRequest = new HttpGet(imageUrl);
                 try (CloseableHttpResponse getImageResponse = httpClient.execute(getImageRequest)) {

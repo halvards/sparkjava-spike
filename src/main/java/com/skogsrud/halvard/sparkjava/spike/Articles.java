@@ -19,7 +19,7 @@ import static spark.Spark.*;
 public class Articles {
     private final ObjectMapper objectMapper;
     private final Map<String, Article> articles = new HashMap<>();
-    private final Map<String, byte[]> images = new HashMap<>();
+    private final Map<String, Map<String, byte[]>> images = new HashMap<>();
 
     public Articles(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -76,9 +76,15 @@ public class Articles {
             return "Article with id [" + id + "] deleted";
         });
 
-        get("/articles/images/:filename", (request, response) -> {
+        get("/articles/:id/images/:filename", (request, response) -> {
+            String id = request.params(":id");
             String filename = request.params(":filename");
-            byte[] image = images.get(filename);
+            Map<String, byte[]> imageMap = images.get(id);
+            if (imageMap == null) {
+                response.status(404);
+                return "Article with id [" + id + "] not found";
+            }
+            byte[] image = imageMap.get(filename);
             if (image == null) {
                 response.status(404);
                 return "Image with filename [" + filename + "] not found";
@@ -91,10 +97,16 @@ public class Articles {
             return response.raw();
         });
 
-        get("/articles/images", (request, response) -> {
+        get("/articles/:id/images", (request, response) -> {
+            String id = request.params(":id");
+            Map<String, byte[]> imageMap = images.get(id);
+            if (imageMap == null) {
+                response.status(404);
+                return "Article with id [" + id + "] not found";
+            }
             response.status(200);
             response.type("application/json");
-            return images.keySet();
+            return imageMap.keySet();
         }, objectMapper::writeValueAsString);
     }
 
@@ -106,7 +118,10 @@ public class Articles {
         MultiPartInputStreamParser.MultiPart imagePart = (MultiPartInputStreamParser.MultiPart) request.raw().getPart("image");
         String filename = imagePart.getContentDispositionFilename();
         byte[] image = IOUtils.toByteArray(imagePart.getInputStream());
-        images.put(filename, image);
+        HashMap<String, byte[]> imageMap = new HashMap<String, byte[]>() {{
+            put(filename, image);
+        }};
+        images.put(id, imageMap);
         return article;
     }
 
