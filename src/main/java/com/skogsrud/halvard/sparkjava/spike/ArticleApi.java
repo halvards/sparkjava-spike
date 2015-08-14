@@ -18,12 +18,12 @@ import java.util.UUID;
 
 import static spark.Spark.*;
 
-public class Articles {
+public class ArticleApi {
     private final ObjectMapper objectMapper;
     private final Map<String, Article> articles = new HashMap<>();
     private final Map<String, Map<String, byte[]>> images = new HashMap<>();
 
-    public Articles(ObjectMapper objectMapper) {
+    public ArticleApi(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
@@ -132,6 +132,6 @@ public class Articles {
      */
     public static void main(String[] args) {
         port(PortResolver.getPort(args));
-        new Articles(new ObjectMapper()).run();
+        new ArticleApi(new ObjectMapper()).run();
     }
 }

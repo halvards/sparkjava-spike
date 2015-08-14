@@ -16,9 +16,10 @@ public class Launch {
         ObjectMapper objectMapper = new ObjectMapper();
 
         new HelloWorld().run();
-        new Books(objectMapper).run();
-        new Image().run();
-        new Articles(objectMapper).run();
+        new BookApi(objectMapper).run();
+        new ImageApi().run();
+        new ArticleApi(objectMapper).run();
+        new StoryApi(objectMapper).run();
 
         disableCaching();
     }

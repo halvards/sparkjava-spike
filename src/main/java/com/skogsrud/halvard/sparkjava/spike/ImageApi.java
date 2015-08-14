@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 import static spark.Spark.get;
 import static spark.SparkBase.port;
 
-public class Image {
+public class ImageApi {
     public void run() throws Exception {
         get("/image", (request, response) -> {
 //            String format = "jpg".equals(request.params(":format")) ? "jpeg" : request.params(":format");
@@ -35,6 +35,6 @@ public class Image {
      */
     public static void main(String[] args) throws Exception {
         port(PortResolver.getPort(args));
-        new Image().run();
+        new ImageApi().run();
     }
 }

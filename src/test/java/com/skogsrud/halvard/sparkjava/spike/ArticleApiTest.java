@@ -21,7 +21,7 @@ import static org.junit.Assert.assertThat;
 import static spark.Spark.stop;
 import static spark.SparkBase.awaitInitialization;
 
-public class ArticlesTest {
+public class ArticleApiTest {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static int port;
 
@@ -66,7 +66,7 @@ public class ArticlesTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         port = PortResolver.findOpenPort();
-        Articles.main(new String[] { String.valueOf(port) });
+        ArticleApi.main(new String[]{String.valueOf(port)});
         awaitInitialization();
     }
 

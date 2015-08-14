@@ -10,11 +10,11 @@ import java.util.UUID;
 
 import static spark.Spark.*;
 
-public class Books {
+public class BookApi {
     private final Map<String, Book> books = new HashMap<>();
     private final ObjectMapper objectMapper;
 
-    public Books(ObjectMapper objectMapper) {
+    public BookApi(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
@@ -94,6 +94,6 @@ public class Books {
      */
     public static void main(String[] args) throws Exception {
         port(PortResolver.getPort(args));
-        new Books(new ObjectMapper()).run();
+        new BookApi(new ObjectMapper()).run();
     }
 }
